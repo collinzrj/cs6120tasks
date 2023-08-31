@@ -1,3 +1,5 @@
+# Here is a tool that removes the print operations in the code
+
 import json, sys
 
 def remove_print(file):

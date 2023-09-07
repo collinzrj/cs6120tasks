@@ -1,4 +1,4 @@
-import json, sys
+import json, sys, uuid
 
 def get_blocks(instrs):
     blocks = []
@@ -50,6 +50,9 @@ def lvn_opt(block):
         # skip lable
         if 'label' in instr:
             continue
+        # don't optimize memory operations for now
+        # if instr['op'] in ['alloc', 'free', 'store', 'load', 'ptradd']:
+        #     continue
         if 'args' not in instr:
             continue
         num_args = []
@@ -94,7 +97,7 @@ def lvn_opt(block):
             dest = instr['dest']
             if json.dumps(instr) in will_be_reversed:
                 var2num[dest] = num 
-                dest = f'TMPHOLDERxxx7777f_{num}'
+                dest = uuid.uuid4().hex
                 instr['dest'] = dest
             else:
                 dest = instr['dest']
@@ -126,6 +129,7 @@ def constant_fold_opt(block):
                 else:
                     print("Op should be in List!!!")
                 instr = { "op": "const", "dest": instr['dest'], "type": instr['type'], "value": result }
+                constant_dict[instr['dest']] = instr['value']
         new_block.append(instr)
     return new_block
 

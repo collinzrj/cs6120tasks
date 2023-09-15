@@ -65,6 +65,7 @@ class ReachabilityAnalyzer:
         # block label, var name, definitions
         self.block_in_dict: Dict[str, Dict[str, List]] = {}
         self.block_out_dict: Dict[str, Dict[str, List]] = {}
+        self.definition_dict: Dict[str, Any] = {}
 
     def merge(self, labels):
         """merge function"""
@@ -81,7 +82,9 @@ class ReachabilityAnalyzer:
         for instr in block:
             if 'dest' in instr:
                 # block_in[instr['dest']] = [instr]
-                block_in[instr['dest']] = {uuid.uuid4().hex}
+                definition_id = uuid.uuid4().hex
+                self.definition_dict[definition_id] = instr
+                block_in[instr['dest']] = {definition_id}
         return block_in
 
 
@@ -104,11 +107,18 @@ def dataflow_analysis(fn):
     cfg = build_cfg(fn['instrs'])
     analyzer = ReachabilityAnalyzer()
     worklist_algo(cfg, analyzer)
-    return analyzer.block_in_dict, analyzer.block_out_dict
+    block_in_dict = analyzer.block_in_dict
+    for label in block_in_dict:
+        for var in block_in_dict[label]:
+            block_in_dict[label][var] = [analyzer.definition_dict[definition] for definition in block_in_dict[label][var]]
+    block_out_dict = analyzer.block_out_dict
+    for label in block_out_dict:
+        for var in block_out_dict[label]:
+            block_out_dict[label][var] = [analyzer.definition_dict[definition] for definition in block_out_dict[label][var]]
+    return block_in_dict, block_out_dict
 
 if __name__ == '__main__':
-    file = '/Users/collin/Documents/Projects/cs6120tasks/task3/test/gcd.json'
-    # file = sys.argv[1]
+    file = sys.argv[1]
     with open(file, 'r') as f:
         code = json.load(f)
         for fn in code['functions']:

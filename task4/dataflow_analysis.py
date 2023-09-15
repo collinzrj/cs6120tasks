@@ -65,7 +65,6 @@ class ReachabilityAnalyzer:
         # block label, var name, definitions
         self.block_in_dict: Dict[str, Dict[str, List]] = {}
         self.block_out_dict: Dict[str, Dict[str, List]] = {}
-        self.definition_dict: Dict[str, Any] = {}
 
     def merge(self, labels):
         """merge function"""
@@ -81,10 +80,7 @@ class ReachabilityAnalyzer:
         """transfer function"""
         for instr in block:
             if 'dest' in instr:
-                # block_in[instr['dest']] = [instr]
-                definition_id = uuid.uuid4().hex
-                self.definition_dict[definition_id] = instr
-                block_in[instr['dest']] = {definition_id}
+                block_in[instr['dest']] = {json.dumps(instr)}
         return block_in
 
 
@@ -93,37 +89,38 @@ def worklist_algo(cfg, analyzer: ReachabilityAnalyzer):
     """worklist algorithm"""
     worklist = set(cfg.keys())
     while len(worklist) > 0:
-        print(worklist)
+        # print(worklist)
         b = worklist.pop()
         analyzer.block_in_dict[b] = analyzer.merge(cfg[b]['parents'])
         old_block_out_dict = analyzer.block_out_dict.setdefault(b, {})
         analyzer.block_out_dict[b] = analyzer.transfer(cfg[b]['content'], analyzer.block_in_dict[b].copy())
         if analyzer.block_out_dict[b] != old_block_out_dict:
-            worklist.union(cfg[b]['children'])
+            worklist = worklist.union(cfg[b]['children'])
 
 
 def dataflow_analysis(fn):
     """entry point for dataflow analysis"""
     cfg = build_cfg(fn['instrs'])
+    # for name, val in cfg.items():
+    #     print(name)
+    #     print('parents', val['parents'])
+    #     print('children', val['children'])
     analyzer = ReachabilityAnalyzer()
     worklist_algo(cfg, analyzer)
-    block_in_dict = analyzer.block_in_dict
-    for label in block_in_dict:
-        for var in block_in_dict[label]:
-            block_in_dict[label][var] = [analyzer.definition_dict[definition] for definition in block_in_dict[label][var]]
-    block_out_dict = analyzer.block_out_dict
-    for label in block_out_dict:
-        for var in block_out_dict[label]:
-            block_out_dict[label][var] = [analyzer.definition_dict[definition] for definition in block_out_dict[label][var]]
-    return block_in_dict, block_out_dict
+    return analyzer.block_in_dict, analyzer.block_out_dict
 
 if __name__ == '__main__':
-    file = sys.argv[1]
+    file = '/Users/collin/Documents/Projects/cs6120tasks/task3/test/gcd.json'
+    # file = sys.argv[1]
     with open(file, 'r') as f:
         code = json.load(f)
         for fn in code['functions']:
             output = dataflow_analysis(fn)
             print("####INPUT####")
-            print(output[0])
+            # print(output[0])
+            for label, v in output[0].items():
+                print(label, v.keys())
             print("####OUTPUT####")
-            print(output[1])
+            # print(output[1])
+            for label, v in output[1].items():
+                print(label, v.keys())

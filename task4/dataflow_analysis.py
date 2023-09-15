@@ -110,17 +110,21 @@ def dataflow_analysis(fn):
     return analyzer.block_in_dict, analyzer.block_out_dict
 
 if __name__ == '__main__':
-    file = '/Users/collin/Documents/Projects/cs6120tasks/task3/test/gcd.json'
-    # file = sys.argv[1]
+    # file = '../task3/test/gcd.json'
+    file = sys.argv[1]
     with open(file, 'r') as f:
         code = json.load(f)
         for fn in code['functions']:
             output = dataflow_analysis(fn)
             print("####INPUT####")
             # print(output[0])
-            for label, v in output[0].items():
-                print(label, v.keys())
+            for label, vs in output[0].items():
+                print(label)
+                for v, d in vs.items():
+                    print(v, d)
             print("####OUTPUT####")
             # print(output[1])
-            for label, v in output[1].items():
-                print(label, v.keys())
+            for label, vs in output[1].items():
+                print(label)
+                for v, d in vs.items():
+                    print(v, d)

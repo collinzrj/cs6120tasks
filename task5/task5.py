@@ -140,11 +140,16 @@ def compute_dominance_frontier(fn_name, cfg, dom_dict):
 
 
 def test_dom_dict(cfg, dom_dict, entry):
-    for dominatee, dominators in dom_dict.items():
-        for dominator in dominators:
-            if not check_is_dom(cfg, dominator, dominatee, entry):
-                print(dominator, dominatee, 'check failed')
-                return False
+    blocks = cfg.keys()
+    for dominatee in blocks:
+        for dominator in blocks:
+            # if in the dict, should be dominator, if not in the dict, should not be dominator
+            if dominator in dom_dict[dominatee]:
+                if not check_is_dom(cfg, dominator, dominatee, entry):
+                    return False
+            else:
+                if check_is_dom(cfg, dominator, dominatee, entry):
+                    return False
     return True
 
 

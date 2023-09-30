@@ -1,4 +1,5 @@
 import uuid, json, sys, graphviz
+from copy import deepcopy
 
 
 def build_cfg(fn_name, instrs):
@@ -27,17 +28,23 @@ def build_cfg(fn_name, instrs):
         if 'label' in block[0]:
             name_block_list.append((block[0]['label'], block))
         else:
-            name_block_list.append((uuid.uuid4().hex, block))
-    print(fn_name, [x[0] for x in name_block_list])
+            # insert a label if it doesn't have one
+            new_label = f"label_{uuid.uuid4().hex[:4]}"
+            block.insert(0, {"label": new_label})
+            name_block_list.append((new_label, block))
+    # print(fn_name, [x[0] for x in name_block_list])
     entry = name_block_list[0][0]
     # build the cfg
     block_children = {}
     for idx, (name, block) in enumerate(name_block_list):
+        # print(fn_name, name, block)
         if 'op' in block[-1] and block[-1]['op'] in ['jmp', 'br', 'ret']:
             if 'labels' in block[-1]:
+                # print(fn_name, name, block[-1]['labels'])
                 block_children[name] = block[-1]['labels']
         else:
             # TODO: is this correct?
+            # if it is not the last block
             if idx + 1 < len(name_block_list):
                 block_children[name] = [name_block_list[idx + 1][0]]
     ## construct parents block
@@ -69,6 +76,9 @@ def build_cfg(fn_name, instrs):
             continue
         if not has_path(cfg, entry, block, [], []):
             block_to_delete.append(block)
+    for name in cfg:
+        cfg[name]['parents'] = list(filter(lambda x : x not in block_to_delete, cfg[name]['parents']))
+        cfg[name]['children'] = list(filter(lambda x : x not in block_to_delete, cfg[name]['children']))
     for block in block_to_delete:
         cfg.pop(block)
     return entry, cfg
@@ -87,14 +97,29 @@ def find_dominators(fn_name, instrs):
     dom_dict[entry] = {entry}
     prev_dom = {}
     while dom_dict != prev_dom:
-        prev_dom = dom_dict
+        prev_dom = deepcopy(dom_dict)
         for block in blocks:
             current_res = dom_dict[block]
             for parent in cfg[block]['parents']:
+                dom_dict.setdefault(parent, set())
                 current_res = current_res.intersection(dom_dict[parent])
             current_res = {block}.union(current_res)
             dom_dict[block] = current_res
     return dom_dict, cfg, entry
+
+
+def construct_imm_dominatee_dict(fn_name, dom_dict):
+    """
+    Construct the dominance tree
+    """
+    imm_dominatee_dict = {}
+    # print("dom_dict", dom_dict)
+    for block, dominators in dom_dict.items():
+        # each of the dom of a block should be a dom of another dom, and the dom with the most dom except the current block should be the immediate dom
+        dominators = sorted(dominators, key=lambda dominator: len(dom_dict[dominator]))
+        if len(dominators) > 1:
+            imm_dominatee_dict.setdefault(dominators[-2], []).append(block)
+    return imm_dominatee_dict
 
 
 def construct_dominance_tree(fn_name, dom_dict):
@@ -130,12 +155,13 @@ def compute_dominance_frontier(fn_name, cfg, dom_dict):
             # child of dominatee
             for grandchild in cfg[dominatee]['children']:
                 # # should not be a direct dominatee of the vertex
-                if grandchild not in reverse_dom[vertex]:
+                # if grandchild not in reverse_dom[vertex]:
+                if grandchild not in reverse_dom[vertex] or vertex == grandchild:
                     dom_frontier.setdefault(vertex, set()).add(grandchild)
-    print(f'Dominance frontiers in {fn_name} is:')
-    for (k, v) in dom_frontier.items():
-        print(k, v)
-    print("\n")
+    # print(f'Dominance frontiers in {fn_name} is:')
+    # for (k, v) in dom_frontier.items():
+    #     print(k, v)
+    # print("\n")
     return dom_frontier
 
 

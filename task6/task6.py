@@ -1,6 +1,13 @@
 import uuid, json, sys, graphviz, copy
 sys.path.append('../')
-from task5.task5 import build_cfg, find_dominators, compute_dominance_frontier, construct_imm_dominatee_dict
+from task5.task5 import build_cfg, find_dominators, compute_dominance_frontier, construct_imm_dominatee_dict, test_dom_dict
+from task3.optimization import trivial_dce
+
+SHOULD_TEST = False
+
+def myprint(x):
+    if SHOULD_TEST:
+        print(x)
 
 
 def construct_var_block_dict(cfg):
@@ -8,7 +15,9 @@ def construct_var_block_dict(cfg):
     for block in cfg.keys():
         for instr in cfg[block]['content']:
             if 'dest' in instr:
-                var_block_dict.setdefault(instr['dest'], set()).add((block, instr['type']))
+                # type might be a dict
+                var_type = json.dumps(instr['type'])
+                var_block_dict.setdefault(instr['dest'], set()).add((block, var_type))
     return var_block_dict
 
 
@@ -17,12 +26,14 @@ def insert_phi_nodes(var_block_dict, dom_frontier, cfg):
     for var, definition_blocks in var_block_dict.items():
         while len(definition_blocks) > 0:
             (df_block, var_type) = definition_blocks.pop()
+            var_type = json.loads(var_type)
             if df_block in dom_frontier:
                 for frontier in dom_frontier[df_block]:
                     cfg[frontier].setdefault('phi_nodes', {})
                     if var not in cfg[frontier]['phi_nodes']:
                         num_parents = len(cfg[frontier]['parents'])
                         phi_node = {
+                            "original_dest": var,
                             "dest": var,
                             "type": var_type,
                             "op": "phi",
@@ -31,14 +42,21 @@ def insert_phi_nodes(var_block_dict, dom_frontier, cfg):
                         }
                         cfg[frontier]['phi_nodes'][var] = phi_node
                         # TODO: is this correct? check this for bug
-                        definition_blocks.add((df_block, var_type))
+                        definition_blocks.add((df_block, json.dumps(var_type)))
     return cfg
 
 
 def rename(block, cfg, stack, imm_dom_dict):
-    print('renaming block', block)
+    myprint(f"renaming block {block}")
     new_content = []
+    # rename phi node dest
+    for phi_node in cfg[block].setdefault('phi_nodes', {}).values():
+        stack.setdefault(phi_node['dest'], [])
+        new_dest = f"{phi_node['dest']}_{uuid.uuid4().hex[:8]}"
+        stack[phi_node['dest']].append(new_dest)
+        phi_node['dest'] = new_dest
     for instr in cfg[block]['content']:
+        # print(instr)
         new_instr = instr.copy()
         if 'args' in instr:
             new_args = []
@@ -46,10 +64,11 @@ def rename(block, cfg, stack, imm_dom_dict):
                 if arg in stack:
                     new_args.append(stack[arg][-1])
                 else:
-                    print(f"Error! arg {arg} should be in stack")
+                    new_args.append(arg)
             new_instr['args'] = new_args
             # print('tttt', block, new_args, stack)
         if 'dest' in instr:
+            myprint(f"rename {instr}")
             stack.setdefault(instr['dest'], [])
             new_instr['dest'] = f"{instr['dest']}_{uuid.uuid4().hex[:8]}"
             stack[instr['dest']].append(new_instr['dest'])
@@ -57,12 +76,11 @@ def rename(block, cfg, stack, imm_dom_dict):
     cfg[block]['content'] = new_content
     for child in cfg[block]['children']:
         for phi_node in cfg[child].setdefault('phi_nodes', {}).values():
-            print('phi_node dest:', phi_node['dest'])
-            phi_node['labels'].append(block)
-            phi_node['args'].append(stack[phi_node['dest']][-1])
-    # rename phi node dest
-    for phi_node in cfg[block].setdefault('phi_nodes', {}).values():
-        phi_node['dest'] = stack[phi_node['dest'][-1]]
+            # TODO: is this correct? should we skip here?
+            if phi_node['original_dest'] in stack:
+                # print('phi_node dest:', phi_node['dest'])
+                phi_node['labels'].append(block)
+                phi_node['args'].append(stack[phi_node['original_dest']][-1])
     for imm_dominatee in imm_dom_dict.setdefault(block, []):
         rename(imm_dominatee, cfg, copy.deepcopy(stack), imm_dom_dict)
 
@@ -83,15 +101,39 @@ def to_ssa(code):
     for fn in code['functions']:
         fn_name = fn['name']
         dom_dict, cfg, entry = find_dominators(fn_name, fn['instrs'])
+        myprint(f"test dom dict {test_dom_dict(cfg, dom_dict, entry)}")
         var_block_dict = construct_var_block_dict(cfg)
         dom_frontier = compute_dominance_frontier(fn_name, cfg, dom_dict)
         cfg = insert_phi_nodes(var_block_dict, dom_frontier, cfg)
         imm_dom_dict = construct_imm_dominatee_dict(fn_name, dom_dict)
-        rename(entry, cfg, {}, imm_dom_dict)
+        myprint(f"dom dict {dom_dict}")
+        myprint(f"imm dom {imm_dom_dict}")
+        # initialize the stack
+        stack = {}
+        if 'args' in fn:
+            for arg in fn['args']:
+                name = arg['name']
+                stack[name] = [name]
+        rename(entry, cfg, stack, imm_dom_dict)
+        # # remove unnecessary phi nodes
+        # # if a phi node doesn't contain path from all parents
+        # # then this variable shouldn't be used here
+        # for block in cfg:
+        #     new_content = {}
+        #     for key, phi_node in cfg[block]['phi_nodes'].items():
+        #         # print(phi_node)
+        #         should_keep = True
+        #         for parent in cfg[block]['parents']:
+        #             if parent not in phi_node['labels']:
+        #                 should_keep = False
+        #                 break
+        #         if should_keep:
+        #             new_content[key] = phi_node
+        #     cfg[block]['phi_nodes'] = new_content
         new_fn = construct_function_from_cfg(cfg)
+        new_fn = trivial_dce(new_fn)
         fn['instrs'] = new_fn
-        for line in new_fn:
-            print(line)
+    return code
 
 
 def from_ssa(code):
@@ -117,7 +159,15 @@ def from_ssa(code):
 
 if __name__ == '__main__':
     # file = sys.argv[1]
-    file = '/Users/collin/Documents/Projects/cs6120tasks/task3/test/simple_branch.json'
-    with open(file, 'r') as f:
-        code = json.load(f)
-    to_ssa(code)
+    # with open(file, 'r') as f:
+    #     code = json.load(f)
+    lines = ''
+    while True:
+        try:
+            line = input()
+            lines += line + '\n'
+        except EOFError:
+            break
+    code = json.loads(lines)
+    new_code = to_ssa(code)
+    print(json.dumps(new_code, indent=2))

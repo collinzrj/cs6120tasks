@@ -132,20 +132,23 @@ def to_ssa(code):
         #             new_content[key] = phi_node
         #     cfg[block]['phi_nodes'] = new_content
         new_fn = construct_function_from_cfg(cfg)
-        new_fn = trivial_dce(new_fn)
         instrs = []
+        defined_vars = []
         for instr in new_fn:
             if 'args' in instr:
                 if '__undefined' in instr['args']:
                     continue
+            if 'dest' in instr:
+                defined_vars.append(instr['dest'])
             instrs.append(instr)
-        fn['instrs'] = instrs
+        new_fn = trivial_dce(instrs)
+        fn['instrs'] = new_fn
     return code
 
 
 def from_ssa(code):
     for fn in code['functions']:
-        cfg = build_cfg(fn['name'], fn['instrs'])
+        entry, cfg = build_cfg(fn['name'], fn['instrs'])
         for block in cfg:
             new_content = []
             for instr in cfg[block]['content']:
@@ -153,15 +156,24 @@ def from_ssa(code):
                     for idx in range(len(instr['args'])):
                         parent = instr['labels'][idx]
                         arg = instr['args'][idx]
-                        cfg[parent]['content'].append({
-                            "op": "id",
-                            "dest": instr['dest'],
-                            "type": instr['type'],
-                            "args": [ arg ]
-                        })
+                        # has control flow at the end
+                        new_instr = {
+                                "op": "id",
+                                "dest": instr['dest'],
+                                "type": instr['type'],
+                                "args": [ arg ]
+                            }
+                        if len(cfg[parent]['content']) > 1 and 'op' in cfg[parent]['content'][-1] and cfg[parent]['content'][-1]['op'] in ['jmp', 'br', 'ret']:
+                            cfg[parent]['content'].insert(len(cfg[parent]['content']) - 1, new_instr)
+                        else:
+                            cfg[parent]['content'].append(new_instr)
                 else:
                     new_content.append(instr)
             cfg[block]['content'] = new_content
+        new_fn = construct_function_from_cfg(cfg)
+        fn['instrs'] = new_fn
+    return code
+
 
 
 if __name__ == '__main__':
@@ -177,4 +189,5 @@ if __name__ == '__main__':
             break
     code = json.loads(lines)
     new_code = to_ssa(code)
+    new_code = from_ssa(new_code)
     print(json.dumps(new_code, indent=2))

@@ -26,7 +26,3 @@ if __name__ == '__main__':
                 print(first_output == second_output)
             except Exception:
                 print(file_path, "failed!")
-            
-/Users/collin/Documents/Projects/bril/benchmarks/core/perfect.bril
-
-/Users/collin/Library/Python/3.11/bin/bril2json < /Users/collin/Documents/Projects/bril/benchmarks/core/perfect.bril | brilirs -p {args}

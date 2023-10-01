@@ -32,6 +32,10 @@ def build_cfg(fn_name, instrs):
             new_label = f"label_{uuid.uuid4().hex[:4]}"
             block.insert(0, {"label": new_label})
             name_block_list.append((new_label, block))
+    # append entry at first to prevent phi nodes
+    # append a dummy variable to make it none empty
+    entry_label = f"entry_{uuid.uuid4().hex[:4]}"
+    name_block_list.insert(0, (entry_label, [{"label": entry_label}]))
     # print(fn_name, [x[0] for x in name_block_list])
     entry = name_block_list[0][0]
     # build the cfg

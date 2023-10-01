@@ -42,7 +42,7 @@ def insert_phi_nodes(var_block_dict, dom_frontier, cfg):
                         }
                         cfg[frontier]['phi_nodes'][var] = phi_node
                         # TODO: is this correct? check this for bug
-                        definition_blocks.add((df_block, json.dumps(var_type)))
+                        definition_blocks.add((frontier, json.dumps(var_type)))
     return cfg
 
 
@@ -76,11 +76,12 @@ def rename(block, cfg, stack, imm_dom_dict):
     cfg[block]['content'] = new_content
     for child in cfg[block]['children']:
         for phi_node in cfg[child].setdefault('phi_nodes', {}).values():
-            # TODO: is this correct? should we skip here?
             if phi_node['original_dest'] in stack:
-                # print('phi_node dest:', phi_node['dest'])
-                phi_node['labels'].append(block)
-                phi_node['args'].append(stack[phi_node['original_dest']][-1])
+                arg = stack[phi_node['original_dest']][-1]
+            else:
+                arg = "__undefined"
+            phi_node['labels'].append(block)
+            phi_node['args'].append(arg)
     for imm_dominatee in imm_dom_dict.setdefault(block, []):
         rename(imm_dominatee, cfg, copy.deepcopy(stack), imm_dom_dict)
 
@@ -132,7 +133,13 @@ def to_ssa(code):
         #     cfg[block]['phi_nodes'] = new_content
         new_fn = construct_function_from_cfg(cfg)
         new_fn = trivial_dce(new_fn)
-        fn['instrs'] = new_fn
+        instrs = []
+        for instr in new_fn:
+            if 'args' in instr:
+                if '__undefined' in instr['args']:
+                    continue
+            instrs.append(instr)
+        fn['instrs'] = instrs
     return code
 
 

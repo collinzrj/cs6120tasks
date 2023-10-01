@@ -1,0 +1,240 @@
+/Users/collin/Documents/Projects/bril/benchmarks/core/quadratic.bril
+total_dyn_inst: 785
+total_dyn_inst: 827
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/primes-between.bril
+total_dyn_inst: 574100
+total_dyn_inst: 780151
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/orders.bril
+total_dyn_inst: 5352
+total_dyn_inst: 6584
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/palindrome.bril
+total_dyn_inst: 298
+total_dyn_inst: 415
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/totient.bril
+total_dyn_inst: 253
+total_dyn_inst: 395
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/relative-primes.bril
+total_dyn_inst: 1923
+total_dyn_inst: 2113
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/hanoi.bril
+total_dyn_inst: 99
+total_dyn_inst: 99
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/check-primes.bril
+total_dyn_inst: 8468
+total_dyn_inst: 9078
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/sum-sq-diff.bril
+total_dyn_inst: 3038
+total_dyn_inst: 3440
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/mytest.bril
+total_dyn_inst: 4
+total_dyn_inst: 4
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/fact.bril
+total_dyn_inst: 229
+total_dyn_inst: 228
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/loopfact.bril
+total_dyn_inst: 116
+total_dyn_inst: 133
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/recfact.bril
+total_dyn_inst: 104
+total_dyn_inst: 103
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/factors.bril
+total_dyn_inst: 72
+total_dyn_inst: 88
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/perfect.bril
+total_dyn_inst: 232
+total_dyn_inst: 298
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/bitshift.bril
+total_dyn_inst: 167
+total_dyn_inst: 171
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/digital-root.bril
+total_dyn_inst: 247
+total_dyn_inst: 291
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/up-arrow.bril
+total_dyn_inst: 252
+total_dyn_inst: 370
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/sum-divisors.bril
+total_dyn_inst: 159
+total_dyn_inst: 192
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/ackermann.bril
+total_dyn_inst: 1464231
+total_dyn_inst: 1464231
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/pythagorean_triple.bril
+total_dyn_inst: 61518
+total_dyn_inst: 69269
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/dot-product.bril
+total_dyn_inst: 88
+total_dyn_inst: 98
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/euclid.bril
+total_dyn_inst: 563
+total_dyn_inst: 625
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/binary-fmt.bril
+total_dyn_inst: 100
+total_dyn_inst: 100
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/gcd.bril
+total_dyn_inst: 46
+total_dyn_inst: 61
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/catalan.bril
+total_dyn_inst: 659378
+total_dyn_inst: 757792
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/armstrong.bril
+total_dyn_inst: 133
+total_dyn_inst: 162
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/pascals-row.bril
+total_dyn_inst: 146
+total_dyn_inst: 151
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/collatz.bril
+total_dyn_inst: 169
+total_dyn_inst: 186
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/sum-bits.bril
+total_dyn_inst: 73
+total_dyn_inst: 87
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/rectangles-area-difference.bril
+total_dyn_inst: 14
+total_dyn_inst: 15
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/mod_inv.bril
+total_dyn_inst: 558
+total_dyn_inst: 684
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/reverse.bril
+total_dyn_inst: 46
+total_dyn_inst: 58
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/fizz-buzz.bril
+total_dyn_inst: 3652
+total_dyn_inst: 6019
+True
+/Users/collin/Documents/Projects/bril/benchmarks/core/bitwise-ops.bril
+total_dyn_inst: 1690
+total_dyn_inst: 2142
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mixed/cholesky.bril
+total_dyn_inst: 3761
+total_dyn_inst: 5669
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mixed/mat-inv.bril
+total_dyn_inst: 1044
+total_dyn_inst: 1078
+True
+/Users/collin/Documents/Projects/bril/benchmarks/long/function_call.bril
+total_dyn_inst: 59809726
+total_dyn_inst: 54208816
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/ray-sphere-intersection.bril
+total_dyn_inst: 142
+total_dyn_inst: 142
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/conjugate-gradient.bril
+total_dyn_inst: 1999
+total_dyn_inst: 2738
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/n_root.bril
+total_dyn_inst: 733
+total_dyn_inst: 975
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/newton.bril
+total_dyn_inst: 217
+total_dyn_inst: 243
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/euler.bril
+total_dyn_inst: 1908
+total_dyn_inst: 1945
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/riemann.bril
+total_dyn_inst: 298
+total_dyn_inst: 352
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/mandelbrot.bril
+total_dyn_inst: 2720947
+total_dyn_inst: 2811666
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/cordic.bril
+total_dyn_inst: 517
+total_dyn_inst: 2444
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/pow.bril
+total_dyn_inst: 36
+total_dyn_inst: 38
+True
+/Users/collin/Documents/Projects/bril/benchmarks/float/sqrt.bril
+total_dyn_inst: 322
+total_dyn_inst: 395
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/sieve.bril
+total_dyn_inst: 3482
+total_dyn_inst: 3946
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/bubblesort.bril
+total_dyn_inst: 253
+total_dyn_inst: 283
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/primitive-root.bril
+total_dyn_inst: 11029
+total_dyn_inst: 11490
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/adler32.bril
+total_dyn_inst: 6851
+total_dyn_inst: 10078
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/adj2csr.bril
+total_dyn_inst: 56629
+total_dyn_inst: 72604
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/max-subarray.bril
+total_dyn_inst: 193
+total_dyn_inst: 226
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/mat-mul.bril
+total_dyn_inst: 1990407
+total_dyn_inst: 3183564
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/fib.bril
+total_dyn_inst: 121
+total_dyn_inst: 148
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/vsmul.bril
+total_dyn_inst: 86036
+total_dyn_inst: 90133
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/quicksort.bril
+total_dyn_inst: 264
+total_dyn_inst: 293
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/eight-queens.bril
+total_dyn_inst: 1006454
+total_dyn_inst: 1075320
+True
+/Users/collin/Documents/Projects/bril/benchmarks/mem/binary-search.bril
+total_dyn_inst: 78
+total_dyn_inst: 75
+True

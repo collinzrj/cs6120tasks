@@ -116,21 +116,6 @@ def to_ssa(code):
                 name = arg['name']
                 stack[name] = [name]
         rename(entry, cfg, stack, imm_dom_dict)
-        # # remove unnecessary phi nodes
-        # # if a phi node doesn't contain path from all parents
-        # # then this variable shouldn't be used here
-        # for block in cfg:
-        #     new_content = {}
-        #     for key, phi_node in cfg[block]['phi_nodes'].items():
-        #         # print(phi_node)
-        #         should_keep = True
-        #         for parent in cfg[block]['parents']:
-        #             if parent not in phi_node['labels']:
-        #                 should_keep = False
-        #                 break
-        #         if should_keep:
-        #             new_content[key] = phi_node
-        #     cfg[block]['phi_nodes'] = new_content
         new_fn = construct_function_from_cfg(cfg)
         instrs = []
         defined_vars = []

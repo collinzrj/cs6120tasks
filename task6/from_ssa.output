@@ -138,10 +138,6 @@ True
 total_dyn_inst: 1690
 total_dyn_inst: 2145
 True
-/Users/collin/Documents/Projects/bril/benchmarks/mixed/cholesky.bril
-total_dyn_inst: 3761
-error: undefined variable `lidx_5bb8a404`
-/Users/collin/Documents/Projects/bril/benchmarks/mixed/cholesky.bril failed!
 /Users/collin/Documents/Projects/bril/benchmarks/mixed/mat-inv.bril
 total_dyn_inst: 1044
 total_dyn_inst: 1086
@@ -174,10 +170,6 @@ True
 total_dyn_inst: 298
 total_dyn_inst: 352
 True
-/Users/collin/Documents/Projects/bril/benchmarks/float/mandelbrot.bril
-total_dyn_inst: 2720947
-error: undefined variable `v41_5b2b855e`
-/Users/collin/Documents/Projects/bril/benchmarks/float/mandelbrot.bril failed!
 /Users/collin/Documents/Projects/bril/benchmarks/float/cordic.bril
 total_dyn_inst: 517
 total_dyn_inst: 620
@@ -206,18 +198,10 @@ True
 total_dyn_inst: 6851
 total_dyn_inst: 10108
 True
-/Users/collin/Documents/Projects/bril/benchmarks/mem/adj2csr.bril
-total_dyn_inst: 56629
-error: undefined variable `edge_loc_bad089b9`
-/Users/collin/Documents/Projects/bril/benchmarks/mem/adj2csr.bril failed!
 /Users/collin/Documents/Projects/bril/benchmarks/mem/max-subarray.bril
 total_dyn_inst: 193
 total_dyn_inst: 226
 True
-/Users/collin/Documents/Projects/bril/benchmarks/mem/mat-mul.bril
-total_dyn_inst: 1990407
-error: undefined variable `lidx_4390e18f`
-/Users/collin/Documents/Projects/bril/benchmarks/mem/mat-mul.bril failed!
 /Users/collin/Documents/Projects/bril/benchmarks/mem/fib.bril
 total_dyn_inst: 121
 total_dyn_inst: 148

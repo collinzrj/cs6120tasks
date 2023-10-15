@@ -1,6 +1,13 @@
 {
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.autopep8"
-    },
-    "python.formatting.provider": "none"
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "python.formatting.provider": "none",
+  "files.associations": {
+    "set": "cpp"
+  },
+  "cSpell.words": [
+    "LICM",
+    "preheader"
+  ]
 }

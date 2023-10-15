@@ -11,30 +11,39 @@ using namespace llvm;
 namespace {
 
 struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
-    
-    std::set<Value> getLoopInvariants(Loop *L)
+
+    void getLoopInvariants(Loop *L, std::set<Instruction*>& loopInvariants)
     {
-        std::set<Value> loopInvariants;
+
         int loopInvariantsSize = 0;
         do {
-            loopInvariantsSize = loopInvariants.count();
-            for (auto &BB : L->blocks()) {
-                for (auto &I : *BB) {
+            loopInvariantsSize = loopInvariants.size();
+            for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
+            {
+                for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
+                        instr != be; ++instr)
+                {
+                    Instruction *V = &(*instr);
                     bool isLoopInvariant = true;
-                    for (int i = 0; i < I.getNumOperands(); i++) {
-                        llvm::Value *operand = I.getOperand(i);
-                        if (L->contains(operand) && loopInvariants.find(operand) == loopInvariants.end()) {
+                    for (User::op_iterator Operand_user = V->op_begin(), end = V->op_end();
+                         Operand_user != end; ++Operand_user)
+                    {
+                        Value *operand = *Operand_user;
+                        Instruction *opi = dyn_cast<Instruction>(operand);
+                        if (L->contains(V) && !loopInvariants.count(opi))
+                        {
                             isLoopInvariant = false;
                             break;
                         }
                     }
-                    if (isLoopInvariant) {
-                        loopInvariants.insert(I);
+                    if (isLoopInvariant)
+                    {
+                        loopInvariants.insert(V);
                     }
                 }
             }
-        } while(loopInvariants.count() > loopInvariantsSize);
-        return loopInvariants;
+        } while(loopInvariants.size() > loopInvariantsSize);
+        return;
     }
 
     bool safeToHoist(Loop *L, Instruction *I, DominatorTree *DT)
@@ -79,7 +88,8 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
         auto InsertPt = preheader->getTerminator();
         std::vector<BasicBlock::iterator> ins_move;
         // Each Loop object has a preheader block for the loop .
-        std::set<Value> loopInvariants = getLoopInvariants(L);
+        std::set<Instruction*> loopInvariants;
+        getLoopInvariants(L, loopInvariants);
         for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
         {
             for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
@@ -87,8 +97,8 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
             {
                 Instruction *V = &(*instr);
                 errs() << "Instruction: " << *V << "\n";
-                errs() << L->isLoopInvariant(V) << " " << safeToHoist(L, V, DT) << "\n";
-                if (loopInvariants.find(L) != loopInvariants.end() && safeToHoist(L, V, DT))
+                errs() << loopInvariants.count(V) << " " << safeToHoist(L, V, DT) << "\n";
+                if (loopInvariants.count(V) && safeToHoist(L, V, DT))
                 {
                     V->moveBefore(InsertPt);
                     errs() << "Should move instruction" << V << "\n";

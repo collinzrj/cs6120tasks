@@ -9,17 +9,13 @@ typedef struct
 
 twoInt i2;
 
-int main(int argc, char **argv)
+int main()
 {
-    if (argc < 5)
-    {
-        fprintf(stderr, "USAGE: licm a b c d\n");
-        exit(1);
-    }
-    int a = atoi(argv[1]);
-    int b = atoi(argv[2]);
-    int c = atoi(argv[3]);
-    int d = atoi(argv[4]);
+
+    int a = 1;
+    int b = 2;
+    int c = 3;
+    int d = 4;
     int x;
 
     int i, j;
@@ -40,5 +36,5 @@ int main(int argc, char **argv)
         i2.f = b + c; /* don't move store for i2.f */
     }
 
-    printf("%d %d %d %d %d %d %d\n", a, b, c, d, x, i2.e, i2.f);
+    // printf("%d %d %d %d %d %d %d\n", a, b, c, d, x, i2.e, i2.f);
 }

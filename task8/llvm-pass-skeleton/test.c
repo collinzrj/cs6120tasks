@@ -35,6 +35,7 @@ int main()
         }
         i2.f = b + c; /* don't move store for i2.f */
     }
+    return x;
 
     // printf("%d %d %d %d %d %d %d\n", a, b, c, d, x, i2.e, i2.f);
 }

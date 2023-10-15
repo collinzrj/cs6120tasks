@@ -23,22 +23,27 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                 for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
                         instr != be; ++instr)
                 {
-                    Instruction *V = &(*instr);
-                    bool isLoopInvariant = true;
-                    for (Use& U: V->operands())
+                    if (instr->isBinaryOp() || instr->isShift() || instr->isCast() || isa<GetElementPtrInst>(instr) 
+                    || isa<InsertElementInst>(instr) || isa<ExtractElementInst>(instr) || isa<SelectInst>(instr) || isa<LoadInst>(instr))
                     {
-                        Value *operand = U.get();
-                        Instruction *opi = dyn_cast<Instruction>(operand);
-                        if (L->contains(opi) && !loopInvariants.count(opi))
+                        Instruction *V = &(*instr);
+
+                        bool isLoopInvariant = true;
+                        for (Use& U: V->operands())
                         {
-                            errs() << "Instruction not LI: " << *V << "\n";
-                            isLoopInvariant = false;
-                            break;
+                            Value *operand = U.get();
+                            Instruction *opi = dyn_cast<Instruction>(operand);
+                            if (opi && opi->getParent() && (L->contains(opi) && !loopInvariants.count(opi)))
+                            {
+                                errs() << "Instruction not LI: " << V << "\n";
+                                isLoopInvariant = false;
+                                break;
+                            }
                         }
-                    }
-                    if (isLoopInvariant)
-                    {
-                        loopInvariants.insert(V);
+                        if (isLoopInvariant)
+                        {
+                            loopInvariants.insert(V);
+                        }
                     }
                 }
             }
@@ -53,9 +58,9 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
         //     return false;
         
         for (auto U: I->users()) {
-            if (auto user = dyn_cast<Instruction>(U)) {
+            if (auto* user = dyn_cast<Instruction>(U)) {
                 if (!DT->dominates(I->getParent(), user->getParent())) {
-                    errs() << "not dominate use!\n";
+                    // errs() << "not dominate use!\n";
                     return false;
                 };
             }
@@ -67,12 +72,12 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
         for (unsigned i = 0, e = ExitBlocks.size(); i != e; ++i)
             if (!DT->dominates(I->getParent(), ExitBlocks[i]))
             {
-                for (BasicBlock::iterator instr = ExitBlocks[i]->begin(), be = ExitBlocks[i]->end(); instr != be; ++instr)
-                {
-                    Instruction *V = &(*instr);
-                    errs() << *V << "\n";
-                }
-                errs() << "not dominate exit!\n";
+                // for (BasicBlock::iterator instr = ExitBlocks[i]->begin(), be = ExitBlocks[i]->end(); instr != be; ++instr)
+                // {
+                    // Instruction *V = &(*instr);
+                    // errs() << *V << "\n";
+                // }
+                // errs() << "not dominate exit!\n";
                 return false;
             }
         return true;
@@ -89,6 +94,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
         std::vector<BasicBlock::iterator> ins_move;
         // Each Loop object has a preheader block for the loop .
         std::set<Instruction*> loopInvariants;
+        std::set < Instruction *> instr_to_move;
         getLoopInvariants(L, loopInvariants);
         errs() << loopInvariants.size() << "\n";
         for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
@@ -97,16 +103,19 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                  instr != be; ++instr)
             {
                 Instruction *V = &(*instr);
-                errs() << "Instruction: " << *V << "\n";
+                // errs() << "Instruction: " << *V << "\n";
                 errs() << loopInvariants.count(V) << " " << safeToHoist(L, V, DT) << "\n";
                 
                 if (loopInvariants.count(V) && safeToHoist(L, V, DT))
                 {
-                    V->moveBefore(InsertPt);
-                    errs() << "Should move instruction" << V << "\n";
+                    instr_to_move.insert(V);
+                    errs() << "Should move instruction" << *V << "\n";
                     Changed = true;
                 }
             }
+        }
+        for (auto i : instr_to_move) {
+            i->moveBefore(InsertPt);
         }
         return Changed;
     }

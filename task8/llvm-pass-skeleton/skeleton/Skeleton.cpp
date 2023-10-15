@@ -25,13 +25,13 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                 {
                     Instruction *V = &(*instr);
                     bool isLoopInvariant = true;
-                    for (User::op_iterator Operand_user = V->op_begin(), end = V->op_end();
-                         Operand_user != end; ++Operand_user)
+                    for (Use& U: V->operands())
                     {
-                        Value *operand = *Operand_user;
+                        Value *operand = U.get();
                         Instruction *opi = dyn_cast<Instruction>(operand);
-                        if (L->contains(V) && !loopInvariants.count(opi))
+                        if (L->contains(opi) && !loopInvariants.count(opi))
                         {
+                            errs() << "Instruction not LI: " << *V << "\n";
                             isLoopInvariant = false;
                             break;
                         }
@@ -90,6 +90,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
         // Each Loop object has a preheader block for the loop .
         std::set<Instruction*> loopInvariants;
         getLoopInvariants(L, loopInvariants);
+        errs() << loopInvariants.size() << "\n";
         for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
         {
             for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
@@ -98,6 +99,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                 Instruction *V = &(*instr);
                 errs() << "Instruction: " << *V << "\n";
                 errs() << loopInvariants.count(V) << " " << safeToHoist(L, V, DT) << "\n";
+                
                 if (loopInvariants.count(V) && safeToHoist(L, V, DT))
                 {
                     V->moveBefore(InsertPt);

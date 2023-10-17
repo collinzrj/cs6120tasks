@@ -40,6 +40,12 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                         ptrIsInvariant = false;
                         break;
                     }
+                    Instruction *srcInst = dyn_cast<Instruction>(srcPtr);
+                    if (srcInst && L->contains(srcInst)) {
+                        errs() << "srcPtr in the loop\n";
+                        ptrIsInvariant = false;
+                        break;
+                    }
                 }
                 if (ptrIsInvariant) {
                     invariantPointers.insert(destPtr);
@@ -73,6 +79,26 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
             }
         }
         do {
+            prevInvariantPointersSize = invariantPointers.size();
+            for (auto p : ptrWrittenBy) {
+                Value* destPtr = p.first;
+                std::vector<Value*> srcPtrArr = p.second;
+                bool ptrIsInvariant = true;
+                for (auto srcPtr : srcPtrArr) {
+                    if (ptrWrittenBy.count(srcPtr) && !invariantPointers.count(srcPtr)) {
+                        ptrIsInvariant = false;
+                        break;
+                    }
+                    Instruction *srcInst = dyn_cast<Instruction>(srcPtr);
+                    if (srcInst && (L->contains(srcInst) && !loopInvariants.count(srcInst))) {
+                        ptrIsInvariant = false;
+                        break;
+                    }
+                }
+                if (ptrIsInvariant) {
+                    invariantPointers.insert(destPtr);
+                }
+            }
             loopInvariantsSize = loopInvariants.size();
             for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
             {
@@ -109,7 +135,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                     }
                 }
             }
-        } while(loopInvariants.size() > loopInvariantsSize);
+        } while(loopInvariants.size() > loopInvariantsSize || invariantPointers.size() > prevInvariantPointersSize);
         return;
     }
 

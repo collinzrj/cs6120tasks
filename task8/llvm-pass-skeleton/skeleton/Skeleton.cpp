@@ -35,9 +35,13 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                             Instruction *opi = dyn_cast<Instruction>(operand);
                             if (opi && opi->getParent() && (L->contains(opi) && !loopInvariants.count(opi)))
                             {
-                                errs() << "Instruction not LI: " << V << "\n";
+                                errs() << "Instruction not LI: " << *V << "\n";
                                 isLoopInvariant = false;
                                 break;
+                            }
+                            if (isa<LoadInst>(V)) {
+                                errs() << "Instruction is load:" << *V << "\n";
+                                isLoopInvariant = false;
                             }
                         }
                         if (isLoopInvariant)
@@ -103,7 +107,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                  instr != be; ++instr)
             {
                 Instruction *V = &(*instr);
-                // errs() << "Instruction: " << *V << "\n";
+                errs() << "Instruction: " << *V << "\n";
                 errs() << loopInvariants.count(V) << " " << safeToHoist(L, V, DT) << "\n";
                 
                 if (loopInvariants.count(V) && safeToHoist(L, V, DT))
@@ -123,18 +127,18 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
         auto &FAM = AM.getResult<FunctionAnalysisManagerModuleProxy>(M).getManager();
         for (auto &F : M) {
-            errs() << "I saw a function called " << F.getName() << "!\n";
+            errs() << "I saw a function called called " << F.getName() << "!\n";
             auto &LI = FAM.getResult<LoopAnalysis>(F);
             DominatorTree* DT = new DominatorTree(F);
             // print the loops first
-            // for (auto &L : LI) {
-            //     errs() << "Loop:\n";
-            //     for (auto &BB : L->blocks()) {
-            //         for (auto &I : *BB) {
-            //             errs() << "Instruction: " << I << "\n";
-            //         }
-            //     }
-            // }
+            for (auto &L : LI) {
+                errs() << "Loop:\n";
+                for (auto &BB : L->blocks()) {
+                    for (auto &I : *BB) {
+                        errs() << "Instruction: " << I << "\n";
+                    }
+                }
+            }
             for (auto L : LI)
             {
                 LICM(L, DT);

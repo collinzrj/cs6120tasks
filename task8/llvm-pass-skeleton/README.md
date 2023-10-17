@@ -15,3 +15,7 @@ Build:
 Run:
 
     $ /opt/homebrew/opt/llvm/bin/clang -fpass-plugin=`ls build/skeleton/SkeletonPass.*` loop.c
+
+/opt/homebrew/opt/llvm/bin/clang -fpass-plugin=`ls build/skeleton/SkeletonPass.*` tsc.c
+
+Try to test on tsc.c, it seems to be interesting

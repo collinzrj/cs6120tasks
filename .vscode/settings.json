@@ -4,7 +4,17 @@
   },
   "python.formatting.provider": "none",
   "files.associations": {
-    "set": "cpp"
+    "*.tcc": "cpp",
+    "*.sage": "python",
+    "set": "cpp",
+    "tests.h": "c",
+    "__locale": "cpp",
+    "ios": "cpp",
+    "__bit_reference": "cpp",
+    "bitset": "cpp",
+    "chrono": "cpp",
+    "map": "cpp",
+    "unordered_map": "cpp"
   },
   "cSpell.words": [
     "LICM",

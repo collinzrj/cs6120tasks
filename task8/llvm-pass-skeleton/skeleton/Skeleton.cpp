@@ -14,8 +14,61 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
 
     void getLoopInvariants(Loop *L, std::set<Instruction*>& loopInvariants)
     {
-
+        std::map<Value*, std::vector<Value*>> ptrWriteenBy;
+        std::set<Value*> invariantPointers;
+        for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
+        {
+            for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
+                instr != be; ++instr) {
+                    Instruction *V = &(*instr);
+                    StoreInst *op = dyn_cast<StoreInst>(V);
+                    if (op) {
+                        ptrWriteenBy[op->getPointerOperand()].push_back(op->getValueOperand());
+                    }
+                }
+        }
+        // pointer is invariant if it is not written to, or it's only written to by invariants
+        do {
+            prevInvariantPointersSize = invariantPointers.size();
+            for (destPtr, srcPtrArr) in ptrWriteenBy {
+                ptrIsInvariant = true;
+                for srcPtr in srcPtrArr {
+                    if srcPtr in ptrWriteenBy and srcPtr not in invariantPointers {
+                        ptrIsInvariant = false;
+                        break;
+                    }
+                }
+                if ptrIsInvariant {
+                    invariantPointers.insert(srcPtr)
+                }
+            }
+        } while (invariantPointers.size() > prevInvariantPointersSize);
         int loopInvariantsSize = 0;
+        // handle pointers first
+        for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
+        {
+            for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
+                    instr != be; ++instr)
+            {
+                Instruction *V = &(*instr);
+                if (isa<LoadInst>(V)) {
+                    LoadInst *op = dyn_cast<LoadInst>(V);
+                    Value *loadPtr = op->getPointerOperand();
+                    if (!ptrWrittenBy.count(loadPtr) || invariantPointers.count(loadPtr))
+                    {
+                        loopInvariants.isnert(V)
+                    }
+                } else if (isa<StoreInst>(V)) {
+                    StoreInst *inst = dyn_cast<StoreInst>(V);
+                    Value *destPtr = inst->getPointerOperand();
+                    Value *srcPtr = inst->getValueOperand();
+                    if (!ptrWrittenBy.count(destPtr) || invariantPointers.count(destPtr))
+                    {
+                        loopInvariants.isnert(V)
+                    }
+                }
+            }
+        }
         do {
             loopInvariantsSize = loopInvariants.size();
             for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
@@ -29,19 +82,21 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                         Instruction *V = &(*instr);
 
                         bool isLoopInvariant = true;
-                        for (Use& U: V->operands())
-                        {
-                            Value *operand = U.get();
-                            Instruction *opi = dyn_cast<Instruction>(operand);
-                            if (opi && opi->getParent() && (L->contains(opi) && !loopInvariants.count(opi)))
+                        if (isa<LoadInst>(V) || isa<StoreInst>(V)) {
+                            // already handled by above code
+                            continue;
+                        } else {
+                            for (Use& U: V->operands())
                             {
-                                errs() << "Instruction not LI: " << *V << "\n";
-                                isLoopInvariant = false;
-                                break;
-                            }
-                            if (isa<LoadInst>(V)) {
-                                errs() << "Instruction is load:" << *V << "\n";
-                                isLoopInvariant = false;
+                                Value *operand = U.get();
+                                Instruction *opi = dyn_cast<Instruction>(operand);
+                                if (opi && opi->getParent() && (L->contains(opi) && !loopInvariants.count(opi)))
+                                {
+                                    errs() << "Instruction not LI: " << *V << "\n";
+                                    isLoopInvariant = false;
+                                    break;
+                                }
+                                
                             }
                         }
                         if (isLoopInvariant)
@@ -127,7 +182,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
         auto &FAM = AM.getResult<FunctionAnalysisManagerModuleProxy>(M).getManager();
         for (auto &F : M) {
-            errs() << "I saw a function called called " << F.getName() << "!\n";
+            errs() << "I saw a function called " << F.getName() << "!\n";
             auto &LI = FAM.getResult<LoopAnalysis>(F);
             DominatorTree* DT = new DominatorTree(F);
             // print the loops first

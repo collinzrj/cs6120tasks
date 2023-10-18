@@ -16,6 +16,7 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
     {
         std::map<Value*, std::vector<Value*>> ptrWrittenBy;
         std::set<Value*> invariantPointers;
+        // build a graph of for which values a pointer is written by
         for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
         {
             for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
@@ -27,57 +28,8 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                     }
                 }
         }
-        // pointer is invariant if it is not written to, or it's only written to by invariants
         int prevInvariantPointersSize = 0;
-        do {
-            prevInvariantPointersSize = invariantPointers.size();
-            for (auto p : ptrWrittenBy) {
-                Value* destPtr = p.first;
-                std::vector<Value*> srcPtrArr = p.second;
-                bool ptrIsInvariant = true;
-                for (auto srcPtr : srcPtrArr) {
-                    if (ptrWrittenBy.count(srcPtr) && !invariantPointers.count(srcPtr)) {
-                        ptrIsInvariant = false;
-                        break;
-                    }
-                    Instruction *srcInst = dyn_cast<Instruction>(srcPtr);
-                    if (srcInst && L->contains(srcInst)) {
-                        errs() << "srcPtr in the loop\n";
-                        ptrIsInvariant = false;
-                        break;
-                    }
-                }
-                if (ptrIsInvariant) {
-                    invariantPointers.insert(destPtr);
-                }
-            }
-        } while (invariantPointers.size() > prevInvariantPointersSize);
         int loopInvariantsSize = 0;
-        // handle pointers first
-        for (auto block = L->block_begin(), end = L->block_end(); block != end; ++block)
-        {
-            for (BasicBlock::iterator instr = (*block)->begin(), be = (*block)->end();
-                    instr != be; ++instr)
-            {
-                Instruction *V = &(*instr);
-                if (isa<LoadInst>(V)) {
-                    LoadInst *op = dyn_cast<LoadInst>(V);
-                    Value *loadPtr = op->getPointerOperand();
-                    if (!ptrWrittenBy.count(loadPtr) || invariantPointers.count(loadPtr))
-                    {
-                        loopInvariants.insert(V);
-                    }
-                } else if (isa<StoreInst>(V)) {
-                    StoreInst *inst = dyn_cast<StoreInst>(V);
-                    Value *destPtr = inst->getPointerOperand();
-                    Value *srcPtr = inst->getValueOperand();
-                    if (!ptrWrittenBy.count(destPtr) || invariantPointers.count(destPtr))
-                    {
-                        loopInvariants.insert(V);
-                    }
-                }
-            }
-        }
         do {
             prevInvariantPointersSize = invariantPointers.size();
             for (auto p : ptrWrittenBy) {
@@ -106,15 +58,30 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                         instr != be; ++instr)
                 {
                     if (instr->isBinaryOp() || instr->isShift() || instr->isCast() || isa<GetElementPtrInst>(instr) 
-                    || isa<InsertElementInst>(instr) || isa<ExtractElementInst>(instr) || isa<SelectInst>(instr) || isa<LoadInst>(instr))
+                    || isa<InsertElementInst>(instr) || isa<ExtractElementInst>(instr) || isa<SelectInst>(instr) || isa<LoadInst>(instr) || isa<StoreInst>(instr))
                     {
                         Instruction *V = &(*instr);
-
-                        bool isLoopInvariant = true;
                         if (isa<LoadInst>(V) || isa<StoreInst>(V)) {
-                            // already handled by above code
-                            continue;
+                            if (isa<LoadInst>(V)) {
+                                LoadInst *op = dyn_cast<LoadInst>(V);
+                                Value *loadPtr = op->getPointerOperand();
+                                // errs() << "LoadInst: " << *V << " " << !ptrWrittenBy.count(loadPtr) << " " << invariantPointers.count(loadPtr) << "\n";
+                                if (!ptrWrittenBy.count(loadPtr) || invariantPointers.count(loadPtr))
+                                {
+                                    loopInvariants.insert(V);
+                                }
+                            } else if (isa<StoreInst>(V)) {
+                                StoreInst *inst = dyn_cast<StoreInst>(V);
+                                Value *destPtr = inst->getPointerOperand();
+                                Value *srcPtr = inst->getValueOperand();
+                                // errs() << "StoreInst: " << *V << " " << !ptrWrittenBy.count(destPtr) << " " << invariantPointers.count(destPtr) << "\n";
+                                if (!ptrWrittenBy.count(destPtr) || invariantPointers.count(destPtr))
+                                {
+                                    loopInvariants.insert(V);
+                                }
+                            }
                         } else {
+                            bool isLoopInvariant = true;
                             for (Use& U: V->operands())
                             {
                                 Value *operand = U.get();
@@ -128,10 +95,10 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                                 }
                                 
                             }
-                        }
-                        if (isLoopInvariant)
-                        {
-                            loopInvariants.insert(V);
+                            if (isLoopInvariant)
+                            {
+                                loopInvariants.insert(V);
+                            }
                         }
                     }
                 }

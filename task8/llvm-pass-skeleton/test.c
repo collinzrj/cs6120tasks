@@ -19,7 +19,7 @@ int main()
     int x;
 
     int i, j;
-
+    j = 2;
     i2.e = a;
     i2.f = b;
 
@@ -27,15 +27,13 @@ int main()
     {
         for (i = 0; i < c; i++)
         {
-            a = (c / b) + b * j; /* b*j out of one loop; c/b stays because div traps */
+            a = b * j; /* b*j out of one loop; */
             x = b * j + i2.e;    /* don't move because of load for i2.e */
             if (j == i)
                 d = a * c; /* d does not dominate loop exit */
-            a = a - c;     /* move out to same level as previous "a = ..." */
         }
         i2.f = b + c; /* don't move store for i2.f */
     }
     return x;
 
-    // printf("%d %d %d %d %d %d %d\n", a, b, c, d, x, i2.e, i2.f);
 }

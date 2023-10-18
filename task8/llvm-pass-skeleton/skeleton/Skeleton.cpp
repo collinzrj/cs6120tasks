@@ -119,7 +119,8 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                             {
                                 Value *operand = U.get();
                                 Instruction *opi = dyn_cast<Instruction>(operand);
-                                if (opi && opi->getParent() && (L->contains(opi) && !loopInvariants.count(opi)))
+                                // if (opi && opi->getParent() && (L->contains(opi) && !loopInvariants.count(opi)))
+                                if ((L->contains(opi) && !loopInvariants.count(opi)))
                                 {
                                     errs() << "Instruction not LI: " << *V << "\n";
                                     isLoopInvariant = false;

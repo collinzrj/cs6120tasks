@@ -16,3 +16,23 @@ we encountered a lot of problems due to the recent upgrade of the llvm library, 
 we first tried to use the latest loopmanager to obtain the natural loops, but didn't succeed, so we have to take a step back and use the legacy one, which works in a constraint way.
 we also manually writes helper functions to deal with edge cases with pointer instructions that could be treated as invariants.
 Some llvm functions doesn't do the same thing as its name indicates (e.g. isLoopInvariant) so we have to read through the original code to understand what it does
+
+### Handle Load And Store Instruction
+We found that load and store instructions can't be simply handled by the algorithm given in the course notes. However, llvm heavily relies on load and store. As a result, we extended the algorithm to handle load and store cases. We copied the pseudocode from the course notes, and prefix our changes with ">", our [code](link) also has comments explain the algo. 
+```
+iterate to convergence:
+    > for every pointer in the loop:
+        > mark it as InvariantPointer iff, for all values written to the pointer, either:
+            > the value is never written to or only wirtten by an InvariantPointer
+            > the value is never written to or only written by an InvariantInstruction
+    for every instruction in the loop:
+        mark it as LI iff, for all arguments x:
+            > if x is a LoadInst:
+                > it only loads from value outside the loop or invariant pointer/value
+            > if x is a StoreInst:
+                > it is only stored by value outside the loop or invariant pointer/value
+            else:
+                all reaching defintions of x are outside of the loop, or
+                there is exactly one definition, and it is already marked as
+                    loop invariant
+```

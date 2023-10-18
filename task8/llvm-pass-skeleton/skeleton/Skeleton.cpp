@@ -37,10 +37,12 @@ struct SkeletonPass : public PassInfoMixin<SkeletonPass> {
                 std::vector<Value*> srcPtrArr = p.second;
                 bool ptrIsInvariant = true;
                 for (auto srcPtr : srcPtrArr) {
+                    // maybe not invariant if it has written by a maybe not invariant pointer
                     if (ptrWrittenBy.count(srcPtr) && !invariantPointers.count(srcPtr)) {
                         ptrIsInvariant = false;
                         break;
                     }
+                    // maybe not invariant if it has written by a maybe not invariant instruction
                     Instruction *srcInst = dyn_cast<Instruction>(srcPtr);
                     if (srcInst && (L->contains(srcInst) && !loopInvariants.count(srcInst))) {
                         ptrIsInvariant = false;

@@ -1,5 +1,5 @@
 ## Summary
-LICM implementation under lesson8 folder
+LICM implementation under lesson8 folder in [Skeleton.c](https://github.com/collinzrj/cs6120tasks/blob/main/task8/llvm-pass-skeleton/skeleton/Skeleton.cpp)
 @collinzrj and I worked together on implementing LICM using LLVM.
 
 We uses a ModuleAnalysisManager for our pass. Then we iterate through the functions inside the module and obtain the natural loops for each function. While this is really easy to use this has posed certain constraint to our optimizer: during testing we find out that our algorithm has problem doing optimization if a function A is called within a loop in function B
@@ -18,7 +18,7 @@ we also manually writes helper functions to deal with edge cases with pointer in
 Some llvm functions doesn't do the same thing as its name indicates (e.g. isLoopInvariant) so we have to read through the original code to understand what it does
 
 ### Handle Load And Store Instruction
-We found that load and store instructions can't be simply handled by the algorithm given in the course notes. However, llvm heavily relies on load and store. As a result, we extended the algorithm to handle load and store cases. We copied the pseudocode from the course notes, and prefix our changes with ">", our [code](link) also has comments explain the algo. 
+We found that load and store instructions can't be simply handled by the algorithm given in the course notes. However, llvm heavily relies on load and store. As a result, we extended the algorithm to handle load and store cases. We copied the pseudocode from the course notes, and prefix our changes with ">", our [code](https://github.com/collinzrj/cs6120tasks/blob/main/task8/llvm-pass-skeleton/skeleton/Skeleton.cpp) also has comments explain the algo. 
 ```
 iterate to convergence:
     > for every pointer in the loop:
